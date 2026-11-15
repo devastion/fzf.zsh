@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+# desc: Change to a directory below the current one
+
+fcd() {
+  _fzf_list_paths d | _fzf_cd_into --read0 --print0 --scheme=path --query="${*}"
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+_fzf_function_source() {
+  emulate -L zsh
+  local name="${1}" dir source
+  REPLY=''
+  ((${+functions[${name}]})) || return 1
+  if [[ "${functions[${name}]}" != *'builtin autoload -X'* ]]; then
+    REPLY="${functions[${name}]}"
+    return
+  fi
+  for dir in "$fpath[@]"; do
+    source="${dir}/${name}"
+    if [[ -r "${source}" && -f "${source}" ]]; then
+      REPLY="$(< "${source}")"
+      return
+    fi
+  done
+  return 1
+}

@@ -1,0 +1,17 @@
+#compdef fdef
+
+local -a candidates=()
+local name
+
+for name in "${(@ok)aliases}"; do
+  candidates+=("${name}:alias")
+done
+for name in "${(@ok)galiases}"; do
+  candidates+=("${name}:global alias")
+done
+for name in "${(@ok)functions}"; do
+  [[ "${name}" == [_.+-]* ]] && continue
+  candidates+=("${name}:function")
+done
+
+_describe 'alias or function' candidates

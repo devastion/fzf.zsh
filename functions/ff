@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+# desc: Print the selected files
+
+ff() {
+  emulate -L zsh
+  zmodload zsh/zutil || return
+  local -a selected=() zero=()
+  zparseopts -D -F -- -print0=zero || return 2
+  selected=("${(@0)$(
+    _fzf_list_paths f |
+      fzf --read0 --print0 --multi --scheme=path --query="${*}" \
+        --header='tab select · enter print paths' \
+        --preview-window 'right,60%,wrap,nohidden'
+  )}") || return 1
+  selected=("${(@)selected:#}")
+  ((${#selected})) || return 1
+  if ((${#zero})); then
+    printf '%s\0' "$selected[@]"
+  else
+    print -rl -- "$selected[@]"
+  fi
+}

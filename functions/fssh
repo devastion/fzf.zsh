@@ -1,0 +1,48 @@
+#!/usr/bin/env zsh
+# desc: Connect to a literal host from SSH config and Include files
+
+fssh() {
+  emulate -L zsh
+  local config_file line host pattern included
+  local -a words=() hosts=() config_files=("${HOME}/.ssh/config")
+  local -A seen=()
+  local -i index=1
+  while ((index <= ${#config_files})); do
+    config_file="${config_files[index]:A}"
+    ((index += 1))
+    [[ -r "${config_file}" && -f "${config_file}" && -z "${seen[${config_file}]-}" ]] || continue
+    seen[${config_file}]=1
+    for line in "${(@f)$(< "${config_file}")}"; do
+      words=("${(@Q)${(Z+C+)line}}")
+      case "${(L)words[1]}" in
+        host)
+          for host in "${(@)words[2,-1]}"; do
+            [[ -n "${host}" && "${host}" != *[\*\?\!]* ]] && hosts+=("${host}")
+          done
+          ;;
+        include)
+          for pattern in "${(@)words[2,-1]}"; do
+            [[ "${pattern}" == '~/'* ]] && pattern="${HOME}/${pattern#\~/}"
+            [[ "${pattern}" == /* ]] || pattern="${HOME}/.ssh/${pattern}"
+            for included in ${~pattern}(N-.); do
+              config_files+=("${included}")
+            done
+          done
+          ;;
+      esac
+    done
+  done
+  hosts=("${(@ou)hosts}")
+  ((${#hosts})) || {
+    print -u2 -r -- 'fssh: no literal hosts found in ~/.ssh/config'
+    return 1
+  }
+  host="$(
+    print -rl -- "$hosts[@]" |
+      fzf --query="${*}" --header='enter connect' \
+        --preview 'ssh -G {} 2> /dev/null | grep -E "^(hostname|user|port|identityfile|proxyjump) "' \
+        --preview-window 'right,50%,wrap,nohidden'
+  )" || return 1
+  [[ -n "${host}" ]] || return 1
+  ssh -- "${host}"
+}

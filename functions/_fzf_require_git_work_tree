@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+_fzf_require_git_work_tree() {
+  [[ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" == true ]] || {
+    print -u2 -r -- 'Not a git repository'
+    return 1
+  }
+}

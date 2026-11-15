@@ -1,0 +1,39 @@
+#!/usr/bin/env zsh
+# desc: Terminate the processes listening on a port
+
+fkp() {
+  emulate -L zsh
+  local listener pid remaining
+  local -a list_cmd=(ss -lptn) listeners=() pids=()
+  [[ "${OSTYPE}" == darwin* ]] && list_cmd=(lsof -nP -iTCP -sTCP:LISTEN)
+  ((${+commands[${list_cmd[1]}]})) || {
+    print -u2 -r -- "fkp: ${list_cmd[1]} not found"
+    return 127
+  }
+  ((${+commands[fzf]})) || {
+    print -u2 -r -- 'fkp: fzf not found'
+    return 127
+  }
+
+  listeners=("${(@f)$(
+    "$list_cmd[@]" 2> /dev/null |
+      fzf --multi --header-lines=1 --query="${*}" \
+        --header='tab select · enter terminate the listeners' \
+        --preview 'printf "%s\n" {}' \
+        --preview-window 'down,3,wrap,nohidden'
+  )}") || return 1
+
+  for listener in "$listeners[@]"; do
+    if [[ "${OSTYPE}" == darwin* ]]; then
+      pid="${listener[(w)2]}"
+      [[ "${pid}" == <-> ]] && pids+=("${pid}")
+    else
+      _fzf_listener_pids "${listener}"
+      pids+=("$reply[@]")
+    fi
+  done
+  pids=("${(@u)pids}")
+
+  ((${#pids})) || return 1
+  kill -- "$pids[@]" && print -r -- "Terminated ${(j:, :)pids}"
+}

@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+# desc: Follow a log file
+
+ftail() {
+  emulate -L zsh
+  local log_file
+  local -a roots=("$@")
+  ((${#roots})) || roots=(
+    /var/log(N/)
+    "${HOME}/Library/Logs"(N/)
+    "${XDG_STATE_HOME:-"${HOME}/.local/state"}"(N/)
+  )
+  ((${#roots})) || {
+    print -u2 -r -- 'ftail: no log directories found'
+    return 1
+  }
+
+  local -a finder=(find "$roots[@]" -type f -name '*.log')
+  ((${+commands[fd]})) &&
+    finder=(fd --type f --extension log --hidden . "$roots[@]")
+
+  log_file="$(
+    "$finder[@]" 2> /dev/null |
+      fzf --scheme=path --header='enter follow the file' \
+        --preview 'tail -n 100 -- {}' \
+        --preview-window 'right,60%,wrap,nohidden'
+  )" || return 1
+  [[ -n "${log_file}" ]] || return 1
+  tail -f -- "${log_file}"
+}

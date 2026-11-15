@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+# desc: Copy a command from the history
+
+fh() {
+  emulate -L zsh
+  local -a print_only=()
+  local command_line
+  zparseopts -D -- p=print_only || return 2
+
+  command_line="$(
+    fc -lnr 1 |
+      fzf --query="${*}" --scheme=history --no-sort \
+        --preview 'printf %s {}' \
+        --preview-window 'down,3,wrap,nohidden' \
+        --header='enter copy · fh -p prints'
+  )" || return 1
+  command_line="${command_line#"${command_line%%[![:space:]]*}"}"
+  [[ -z "${command_line}" ]] && return 1
+
+  if ((${#print_only})); then
+    print -r -- "${command_line}"
+  else
+    print -rn -- "${command_line}" | sh -c "${_fzf_clipcopy}" || return
+    print -r -- "Copied: ${command_line}"
+  fi
+}

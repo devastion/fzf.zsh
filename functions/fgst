@@ -1,0 +1,49 @@
+#!/usr/bin/env zsh
+# desc: Apply, pop, branch or drop a stash
+
+fgst() {
+  emulate -L zsh
+  _fzf_require_git_work_tree || return 1
+
+  local output query='' reflog_selector sha
+  local -a selection=()
+  while output="$(git stash list "$@" |
+    fzf --ansi --no-sort --print-query --query="${query}" \
+      --expect=ctrl-a,ctrl-b,ctrl-p,del \
+      --bind='ctrl-u:preview-page-up' \
+      --bind='ctrl-d:preview-page-down' \
+      --bind='ctrl-k:preview-up' \
+      --bind='ctrl-j:preview-down' \
+      --header='ctrl-a apply · ctrl-b branch · ctrl-p pop · del drop' \
+      --preview='entry={}; git stash show -p "${entry%%:*}"' \
+      --preview-window 'down,85%,nohidden')"; do
+    selection=("${(@f)output}")
+
+    query="$selection[1]"
+
+    reflog_selector="${selection[3]%%:*}"
+
+    case $selection[2] in
+      ctrl-a)
+        git stash apply "${reflog_selector}"
+        break
+        ;;
+      ctrl-b)
+        sha=''
+        [[ "$selection[3]" =~ '[0-9a-f]{7}' ]] && sha="${MATCH}"
+        git stash branch "stash-${sha}" "${reflog_selector}"
+        break
+        ;;
+      ctrl-p)
+        git stash pop "${reflog_selector}"
+        break
+        ;;
+      del)
+        git stash drop "${reflog_selector}"
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+}

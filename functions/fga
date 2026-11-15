@@ -1,0 +1,53 @@
+#!/usr/bin/env zsh
+# desc: Stage the selected changes
+
+fga() {
+  emulate -L zsh
+  _fzf_require_git_work_tree || return 1
+
+  local root
+  root="$(git rev-parse --show-toplevel)" || return 1
+
+  local entry
+  local -i index=1
+  local -a entries=() candidates=()
+  entries=("${(@0)$(git -C "${root}" status --short -z)}") || return 1
+  while ((index <= ${#entries})); do
+    entry="$entries[index]"
+    ((index += 1))
+    [[ -n "${entry}" ]] || continue
+    candidates+=("${entry[4,-1]}")
+    [[ "${entry[1,2]}" == *[RC]* ]] && ((index += 1))
+  done
+  ((${#candidates})) || {
+    print -u2 -r -- 'fga: nothing to stage'
+    return 1
+  }
+
+  local -a selected=()
+  selected=("${(@0)$(
+    builtin cd -q -- "${root}" || exit 1
+    printf '%s\0' "$candidates[@]" | fzf --multi --read0 --print0 \
+      --header='tab select · enter stage · ctrl-o open in editor' \
+      --preview 'file={}
+    show_diff() {
+      git -c color.ui="${color}" diff --cached -- "${file}"
+      git -c color.ui="${color}" diff -- "${file}"
+      git ls-files --error-unmatch -- "${file}" > /dev/null 2>&1 ||
+        git -c color.ui="${color}" diff --no-index -- /dev/null "${file}"
+    }
+    if command -v delta > /dev/null 2>&1; then
+      color=never
+      show_diff | delta --width "${FZF_PREVIEW_COLUMNS}"
+    else
+      color=always
+      show_diff
+    fi' \
+      --preview-window 'nohidden' \
+      --bind 'ctrl-o:execute(${EDITOR:-vi} {})'
+  )}") || return 1
+  selected=("${(@)selected:#}")
+  ((${#selected})) || return 1
+
+  git -C "${root}" add -- "$selected[@]"
+}

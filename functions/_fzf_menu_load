@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+_fzf_menu_load() {
+  emulate -L zsh
+  local file REPLY
+  typeset -gA _fzf_menu
+  for file in "${_fzf_dir}/functions"/[^_]*(N-.); do
+    [[ "${file:t}" == fmenu ]] && continue
+    _fzf_func_description "${file}" && _fzf_menu[${file:t}]="${REPLY}"
+  done
+  return 0
+}

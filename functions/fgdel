@@ -1,0 +1,26 @@
+#!/usr/bin/env zsh
+# desc: Delete the selected local branches
+
+fgdel() {
+  emulate -L zsh
+  _fzf_require_git_work_tree || return 1
+
+  local delete_flag='-d'
+  local -a force_opt=() branches=()
+  zparseopts -D -F -- f=force_opt || return 2
+  ((${#force_opt})) && delete_flag='-D'
+
+  branches=("${(@f)$(
+    git for-each-ref --sort=committerdate \
+      --format='%(if)%(HEAD)%(then)%(else)%(refname:short)%(end)' refs/heads/ |
+      grep . |
+      fzf --multi --query="${*}" \
+        --header="tab select · enter git branch ${delete_flag}" \
+        --preview 'git log --oneline --graph --color=always -n 30 {} --' \
+        --preview-window 'right,60%,nohidden'
+  )}") || return 1
+  branches=("${(@)branches:#}")
+  ((${#branches})) || return 1
+
+  git branch "${delete_flag}" -- "$branches[@]"
+}

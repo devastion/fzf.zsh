@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+_fzf_cd_into() {
+  local dir
+  dir="$(
+    fzf --preview "${_fzf_dir_preview}" \
+      --preview-window 'right,60%,nohidden' "$@"
+  )" || return 1
+  dir="${dir%$'\0'}"
+  [[ -n "${dir}" ]] && builtin cd -- "${dir}"
+}

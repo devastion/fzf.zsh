@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+# desc: Commit the staged changes as a fixup of a commit
+
+fgfix() {
+  emulate -L zsh
+  _fzf_require_git_work_tree || return 1
+
+  if git diff --cached --quiet; then
+    print -u2 -r -- 'fgfix: nothing is staged'
+    return 1
+  fi
+
+  local selection
+  selection="$(
+    git log --color=always -n 100 \
+      --format="${_fzf_git_log_format}" |
+      fzf --ansi --no-sort --tiebreak=index \
+        --delimiter=$'\t' --with-nth=2.. \
+        --query="${*}" \
+        --header='enter commit the staged changes as a fixup' \
+        --preview 'git show --color=always --stat -p {1}' \
+        --preview-window 'right,60%,nohidden'
+  )" || return 1
+  [[ -n "${selection}" ]] || return 1
+
+  git commit --fixup="${selection%%$'\t'*}"
+}

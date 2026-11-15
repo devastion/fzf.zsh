@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+# desc: Open a manual page
+
+fman() {
+  emulate -L zsh
+  local page name section
+  page="$(
+    man -k . 2> /dev/null |
+      fzf --query="${*}" \
+        --preview 'entry={}; name=${entry%%[ (,]*}; section=${entry#*\(}; section=${section%%\)*}; MANPAGER=cat man "${section}" "${name}" 2> /dev/null | col -bx | head -n 200' \
+        --preview-window 'right,60%,nohidden'
+  )" || return 1
+  [[ -n "${page}" ]] || return 1
+
+  name="${page%%[ (,]*}"
+  section="${${page#*\(}%%\)*}"
+  man "${section}" "${name}" 2> /dev/null || man -- "${name}"
+}

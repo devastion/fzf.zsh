@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+# desc: Run a Git alias
+
+fgalias() {
+  emulate -L zsh
+  local alias_name alias_value
+
+  git config --get-regexp '^alias\.' |
+    while IFS=' ' read -r alias_name alias_value; do
+      alias_name="${alias_name#alias.}"
+      printf '%d\t%s\t%s\n' "${#alias_name}" "${alias_name}" "${alias_value}"
+    done |
+    sort -n -k1,1 -k2,2 |
+    fzf \
+      --ansi \
+      --delimiter=$'\t' \
+      --with-nth=2 \
+      --query="${*}" \
+      --preview 'printf "git %s\n%s\n" {2} {3}' \
+      --preview-window 'right,60%,nohidden,wrap' \
+      --bind 'enter:become(git {2})'
+}

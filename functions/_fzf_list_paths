@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+_fzf_list_paths() {
+  emulate -L zsh
+  local kind="${1}"
+  if ((${+commands[fd]})); then
+    fd --print0 --type "${kind}" --hidden --follow --exclude .git
+  else
+    command find -L . -name .git -prune -o -type "${kind}" ! -path . -print0
+  fi
+}

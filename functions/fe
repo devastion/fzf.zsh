@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+# desc: Open the selected files in the editor
+
+fe() {
+  emulate -L zsh
+  local -a files=()
+  files=("${(@0)$(ff --print0 -- "$@")}") || return 1
+  files=("${(@)files:#}")
+  ((${#files})) || return 1
+  ${=EDITOR:-vi} -- "$files[@]"
+}

@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+# desc: Signal the selected processes
+
+fk() {
+  emulate -L zsh
+  local process pid signal='TERM'
+  local -a signal_option=() selected_processes=() pids=()
+  zparseopts -D -F -- s:=signal_option || return 2
+  ((${#signal_option})) && signal="${signal_option[2]#SIG}"
+
+  selected_processes=("${(@f)$(
+    ps -eo pid,user,pcpu,pmem,args |
+      fzf --multi --header-lines=1 --query="${*}" \
+        --header="tab select · enter send SIG${signal}" \
+        --preview 'printf "%s\n" {}' \
+        --preview-window 'down,3,wrap,nohidden'
+  )}") || return 1
+
+  for process in "$selected_processes[@]"; do
+    pid="${process[(w)1]}"
+    [[ "${pid}" == <-> ]] || continue
+    pids+=("${pid}")
+  done
+
+  ((${#pids})) || return 1
+  kill -s "${signal}" -- "$pids[@]"
+}

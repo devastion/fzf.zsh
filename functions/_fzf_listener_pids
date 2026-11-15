@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+_fzf_listener_pids() {
+  emulate -L zsh
+  local remaining="${1}" pid
+  reply=()
+  while [[ "${remaining}" =~ 'pid=([0-9]+)' ]]; do
+    pid="${match[1]}"
+    reply+=("${pid}")
+    remaining="${remaining#*pid=${pid}}"
+  done
+}

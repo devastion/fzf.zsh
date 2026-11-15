@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+
+_fzf_pick_definition() {
+  emulate -L zsh
+  local header="${1}" query="${2}" record name selection tab=$'\t'
+  local -i width=0
+  shift 2
+
+  for record in "$@"; do
+    name="${record%%${tab}*}"
+    ((${#name} > width)) && width="${#name}"
+  done
+
+  selection="$(
+    for record in "$@"; do
+      name="${record%%${tab}*}"
+      printf '%s\0' "${(r:width:)name}${tab}${record#*${tab}}"
+    done |
+      fzf --read0 --delimiter="${tab}" --with-nth='1,2' \
+        --query="${query}" --header="${header}" \
+        --preview 'if command -v bat > /dev/null 2>&1; then printf "%s\n" {3..} | bat --language=zsh --style=plain --color=always --paging=never; else printf "%s\n" {3..}; fi' \
+        --preview-window 'right,60%,wrap,nohidden'
+  )" || return 1
+
+  name="${selection%%${tab}*}"
+  name="${name%%[[:space:]]*}"
+  [[ -n "${name}" ]] || return 1
+  print -r -- "${name}"
+}

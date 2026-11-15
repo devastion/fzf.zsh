@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+# desc: Browse the commit log
+
+fgl() {
+  emulate -L zsh
+  _fzf_require_git_work_tree || return 1
+
+  git log --color=always \
+    --format="${_fzf_git_log_format}" "$@" |
+    fzf --ansi --no-sort --tiebreak=index \
+      --delimiter=$'\t' --with-nth=2.. \
+      --header='enter show · ctrl-y copy hash' \
+      --preview 'git show --color=always --stat -p {1}' \
+      --preview-window 'right,60%,nohidden' \
+      --bind "ctrl-y:execute-silent(printf %s {1} | ${_fzf_clipcopy})+abort" \
+      --bind 'enter:execute:git show --color=always {1} | less -R'
+}
