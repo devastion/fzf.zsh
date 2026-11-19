@@ -2,22 +2,29 @@
 # desc: Pick and run an fzf-backed selector
 
 fmenu() {
-  local REPLY
-  () {
-    emulate -L zsh
-    local name tab=$'\t'
-    local -a records=()
-    _fzf_menu_load || return
-    for name in "${(@ok)_fzf_menu}"; do
-      ((${+functions[${name}]})) || continue
-      _fzf_function_source "${name}" || continue
-      records+=("${name}${tab}$_fzf_menu[${name}]${tab}${REPLY}")
-    done
-    ((${#records})) || {
-      print -u2 -r -- 'fmenu: no selector functions found'
-      return 1
-    }
-    REPLY="$(_fzf_pick_definition 'enter run' "${*}" "$records[@]")"
-  } "$@" || return 1
-  "${REPLY}"
+  emulate -L zsh
+  local REPLY dir
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/fmenu.XXXXXX")" || return 1
+  {
+    () {
+      emulate -L zsh
+      local name tab=$'\t'
+      local -i count=0
+      local -a records=()
+      _fzf_menu_load || return
+      for name in "${(@ok)_fzf_menu}"; do
+        ((${+functions[${name}]})) || continue
+        _fzf_function_file "${name}" "${dir}/$((count += 1))" || continue
+        records+=("${name}${tab}$_fzf_menu[${name}]${tab}${REPLY}")
+      done
+      ((${#records})) || {
+        print -u2 -r -- 'fmenu: no selector functions found'
+        return 1
+      }
+      REPLY="$(_fzf_pick_definition 'enter run' "${*}" "$records[@]")"
+    } "$@" || return 1
+    "${REPLY}"
+  } always {
+    command rm -rf -- "${dir}"
+  }
 }

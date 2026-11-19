@@ -32,14 +32,18 @@ fssh() {
       esac
     done
   done
-  hosts=("${(@ou)hosts}")
+  # Sort by byte value so the order does not depend on the locale.
+  () {
+    local LC_ALL=C
+    hosts=("${(@ou)hosts}")
+  }
   ((${#hosts})) || {
     print -u2 -r -- 'fssh: no literal hosts found in ~/.ssh/config'
     return 1
   }
   host="$(
     print -rl -- "$hosts[@]" |
-      fzf --query="${*}" --header='enter connect' \
+      _fzf --query="${*}" --header='enter connect' \
         --preview 'ssh -G {} 2> /dev/null | grep -E "^(hostname|user|port|identityfile|proxyjump) "' \
         --preview-window 'right,50%,wrap,nohidden'
   )" || return 1

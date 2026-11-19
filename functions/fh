@@ -7,11 +7,18 @@ fh() {
   local command_line
   zparseopts -D -- p=print_only || return 2
 
+  zmodload zsh/parameter || return
+  local key
+  local -a entries=()
+  for key in "${(@On)${(@k)history}}"; do
+    entries+=("$history[${key}]")
+  done
+
   command_line="$(
-    fc -lnr 1 |
-      fzf --query="${*}" --scheme=history --no-sort \
+    print -rNC1 -- "$entries[@]" |
+      _fzf --read0 --query="${*}" --scheme=history --no-sort \
         --preview 'printf %s {}' \
-        --preview-window 'down,3,wrap,nohidden' \
+        --preview-window 'down,5,wrap,nohidden' \
         --header='enter copy · fh -p prints'
   )" || return 1
   command_line="${command_line#"${command_line%%[![:space:]]*}"}"

@@ -11,8 +11,7 @@ fgalias() {
       printf '%d\t%s\t%s\n' "${#alias_name}" "${alias_name}" "${alias_value}"
     done |
     sort -n -k1,1 -k2,2 |
-    fzf \
-      --ansi \
+    _fzf \
       --delimiter=$'\t' \
       --with-nth=2 \
       --query="${*}" \

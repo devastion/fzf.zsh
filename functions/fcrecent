@@ -2,6 +2,7 @@
 # desc: Change to a directory from the stack or zoxide
 
 fcrecent() {
+  emulate -L zsh
   local dirs
   dirs="$(
     emulate zsh

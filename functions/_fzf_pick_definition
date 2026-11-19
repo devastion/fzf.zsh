@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 
+# Records are name<TAB>label<TAB>file; the preview shows the file.
 _fzf_pick_definition() {
   emulate -L zsh
   local header="${1}" query="${2}" record name selection tab=$'\t'
@@ -16,9 +17,9 @@ _fzf_pick_definition() {
       name="${record%%${tab}*}"
       printf '%s\0' "${(r:width:)name}${tab}${record#*${tab}}"
     done |
-      fzf --read0 --delimiter="${tab}" --with-nth='1,2' \
+      _fzf --read0 --delimiter="${tab}" --with-nth='1,2' \
         --query="${query}" --header="${header}" \
-        --preview 'if command -v bat > /dev/null 2>&1; then printf "%s\n" {3..} | bat --language=zsh --style=plain --color=always --paging=never; else printf "%s\n" {3..}; fi' \
+        --preview 'if command -v bat > /dev/null 2>&1; then bat --language=zsh --style=plain --color=always --paging=never -- {3}; else cat -- {3}; fi' \
         --preview-window 'right,60%,wrap,nohidden'
   )" || return 1
 

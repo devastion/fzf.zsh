@@ -23,8 +23,13 @@ fi
 
 [[ -z "${FZF_DEFAULT_OPTS_FILE-}" || -r "${FZF_DEFAULT_OPTS_FILE}" ]] || unset FZF_DEFAULT_OPTS_FILE
 
+# `fzf --zsh` needs fzf 0.48 or newer.
 if [[ -o zle && -z "${ZSH_EXECUTION_STRING-}" ]] && zstyle -T ':fzf:' shell-integration; then
-  source <(fzf --zsh)
+  () {
+    autoload -Uz is-at-least
+    local version="${${(z)$(fzf --version 2> /dev/null)}[1]}"
+    ! is-at-least 0.48 "${version%%[^0-9.]*}" || source <(fzf --zsh)
+  }
 fi
 
 () {

@@ -10,14 +10,10 @@ fkp() {
     print -u2 -r -- "fkp: ${list_cmd[1]} not found"
     return 127
   }
-  ((${+commands[fzf]})) || {
-    print -u2 -r -- 'fkp: fzf not found'
-    return 127
-  }
 
   listeners=("${(@f)$(
     "$list_cmd[@]" 2> /dev/null |
-      fzf --multi --header-lines=1 --query="${*}" \
+      _fzf --multi --header-lines=1 --query="${*}" \
         --header='tab select · enter terminate the listeners' \
         --preview 'printf "%s\n" {}' \
         --preview-window 'down,3,wrap,nohidden'

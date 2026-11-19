@@ -8,7 +8,7 @@ fgst() {
   local output query='' reflog_selector sha
   local -a selection=()
   while output="$(git stash list "$@" |
-    fzf --ansi --no-sort --print-query --query="${query}" \
+    _fzf --ansi --no-sort --print-query --query="${query}" \
       --expect=ctrl-a,ctrl-b,ctrl-p,del \
       --bind='ctrl-u:preview-page-up' \
       --bind='ctrl-d:preview-page-down' \
@@ -22,6 +22,7 @@ fgst() {
     query="$selection[1]"
 
     reflog_selector="${selection[3]%%:*}"
+    [[ -n "${reflog_selector}" || -z "$selection[2]" ]] || continue
 
     case $selection[2] in
       ctrl-a)

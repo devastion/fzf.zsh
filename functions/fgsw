@@ -11,7 +11,7 @@ fgsw() {
       --format='%(if)%(symref)%(then)%(else)%(refname:short)%(end)' \
       refs/heads/ refs/remotes/ |
       grep . |
-      fzf --query="${*}" \
+      _fzf --query="${*}" \
         --preview 'git log --oneline --graph --color=always -n 30 {} --' \
         --preview-window 'right,60%,nohidden'
   )" || return 1

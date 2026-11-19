@@ -27,7 +27,7 @@ fga() {
   local -a selected=()
   selected=("${(@0)$(
     builtin cd -q -- "${root}" || exit 1
-    printf '%s\0' "$candidates[@]" | fzf --multi --read0 --print0 \
+    printf '%s\0' "$candidates[@]" | _fzf --multi --read0 --print0 \
       --header='tab select · enter stage · ctrl-o open in editor' \
       --preview 'file={}
     show_diff() {

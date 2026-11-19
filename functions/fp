@@ -2,5 +2,6 @@
 # desc: Change to a directory in PATH
 
 fp() {
+  emulate -L zsh
   print -rl -- "$path[@]" | _fzf_cd_into --query="${*}" --header='PATH entry'
 }

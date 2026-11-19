@@ -6,7 +6,7 @@ fenv() {
   local name
   name="$(
     print -rl -- "${(@ok)parameters[(R)*export*]}" |
-      fzf --query="${*}" \
+      _fzf --query="${*}" \
         --preview 'printenv {}' \
         --preview-window 'right,60%,wrap,nohidden' \
         --bind "ctrl-y:execute-silent(printf %s \"\$(printenv {})\" | ${_fzf_clipcopy})+abort" \
