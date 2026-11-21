@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The `fzf --zsh` integration is cached under `${XDG_CACHE_HOME:-~/.cache}/fzf.zsh` until the fzf binary changes, so a shell start no longer runs fzf twice.
+- `fgsw` shows `git switch --track` errors instead of hiding them; `fgdel` sorts branches newest first like `fgsw`.
+- `fgst` names the branch after the stash's base commit with `git rev-parse`, not by scanning the list line for hex digits.
+- `fh` rejects unknown options; `fmenu` and its completion read the function headers once per session.
 - `fdef` and `fmenu` no longer read every function body up front; previews read a file, so large `fpath`s open faster and big functions no longer hit `ARG_MAX`.
 - `frg` skips the search while the query is empty.
 - `fh` keeps multi-line history entries whole.

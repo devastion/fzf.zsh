@@ -7,7 +7,7 @@ fgl() {
 
   git log --color=always \
     --format="${_fzf_git_log_format}" "$@" |
-    _fzf --ansi --no-sort --tiebreak=index \
+    _fzf_run --ansi --no-sort --tiebreak=index \
       --delimiter=$'\t' --with-nth=2.. \
       --header='enter show · ctrl-y copy hash' \
       --preview 'git show --color=always --stat -p {1}' \

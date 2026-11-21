@@ -6,8 +6,8 @@ fenv() {
   local name
   name="$(
     print -rl -- "${(@ok)parameters[(R)*export*]}" |
-      _fzf --query="${*}" \
-        --preview 'printenv {}' \
+      _fzf_run --query="${*}" \
+        --preview 'name={}; upper=$(printf %s "$name" | tr "[:lower:]" "[:upper:]"); case "$upper" in *TOKEN*|*KEY*|*SECRET*|*PASSWORD*|*PASSWD*|*CREDENTIAL*|*AUTH*) echo "(value hidden: enter prints it, ctrl-y copies it)";; *) printenv "$name";; esac' \
         --preview-window 'right,60%,wrap,nohidden' \
         --bind "ctrl-y:execute-silent(printf %s \"\$(printenv {})\" | ${_fzf_clipcopy})+abort" \
         --header='enter print value · ctrl-y copy value'

@@ -43,7 +43,7 @@ fssh() {
   }
   host="$(
     print -rl -- "$hosts[@]" |
-      _fzf --query="${*}" --header='enter connect' \
+      _fzf_run --query="${*}" --header='enter connect' \
         --preview 'ssh -G {} 2> /dev/null | grep -E "^(hostname|user|port|identityfile|proxyjump) "' \
         --preview-window 'right,50%,wrap,nohidden'
   )" || return 1

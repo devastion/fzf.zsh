@@ -35,6 +35,7 @@ Options and keys:
 | `fk` | `-s SIGNAL` sends that signal (default `TERM`) |
 | `fgdel` | `-f` force-deletes with `git branch -D` |
 | `fgl`, `fenv` | `ctrl-y` copies the hash or value |
+| `fenv` | The preview hides values whose name contains TOKEN, KEY, SECRET, PASSWORD, PASSWD, CREDENTIAL or AUTH; enter still prints them |
 | `fga`, `frg` | `ctrl-o` opens the file in the editor |
 | `fgst` | `ctrl-a` apply, `ctrl-b` branch, `ctrl-p` pop, `del` drop |
 
@@ -51,7 +52,7 @@ echo 'source ~/.zsh/fzf.zsh/fzf.plugin.zsh' >> ~/.zshrc
 
 Load it before `compinit`, or run `compinit` afterwards, so the completions are found.
 
-Needs fzf 0.38 or newer (`become`); the shell integration needs 0.48 (`fzf --zsh`) and is skipped on older versions. Git commands need `git`. `fcrecent` uses `zoxide` when present. Previews use `eza`, `bat` or `lessfilter` when present, and `fd` replaces `find` for the default file list.
+Needs fzf 0.38 or newer (`become`); the shell integration needs 0.48 (`fzf --zsh`) and is skipped on older versions. Its output is cached in `${XDG_CACHE_HOME:-~/.cache}/fzf.zsh` and refreshed when the fzf binary changes. Git commands need `git`. `fcrecent` uses `zoxide` when present. Previews use `eza`, `bat` or `lessfilter` when present, and `fd` replaces `find` for the default file list.
 
 ## Configuration
 

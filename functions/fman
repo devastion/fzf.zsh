@@ -6,7 +6,7 @@ fman() {
   local page name section
   page="$(
     man -k . 2> /dev/null |
-      _fzf --query="${*}" \
+      _fzf_run --query="${*}" \
         --preview 'entry={}; name=${entry%%[ (,]*}; section=${entry#*\(}; section=${section%%\)*}; { MANPAGER=cat man "${section}" "${name}" 2> /dev/null | if command -v col > /dev/null 2>&1; then col -bx; else cat; fi; } | head -n 200' \
         --preview-window 'right,60%,nohidden'
   )" || return 1

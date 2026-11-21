@@ -14,7 +14,7 @@ fgfix() {
   selection="$(
     git log --color=always -n 100 \
       --format="${_fzf_git_log_format}" |
-      _fzf --ansi --no-sort --tiebreak=index \
+      _fzf_run --ansi --no-sort --tiebreak=index \
         --delimiter=$'\t' --with-nth=2.. \
         --query="${*}" \
         --header='enter commit the staged changes as a fixup' \

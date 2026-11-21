@@ -107,6 +107,9 @@ run_preview() {
   for placeholder in '{}' '{1}' '{2}' '{3}'; do
     cmd="${cmd//${placeholder}/${(qq)1}}"
   done
+  # Records without a slice have no fourth and fifth field.
+  cmd="${cmd//\{4\}/${(qq)2-}}"
+  cmd="${cmd//\{5\}/${(qq)3-}}"
   # fzf ignores the exit status of a preview, so do the same.
   FZF_PREVIEW_COLUMNS=80 sh -c "${cmd}" || true
 }

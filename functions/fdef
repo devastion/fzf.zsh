@@ -2,30 +2,43 @@
 # desc: Print the definition of an alias or function
 
 fdef() {
-  emulate -L zsh
-  local name dir target REPLY tab=$'\t'
-  local -i count=0
+  emulate -L zsh +o multibyte
+  local name dir file text buffer='' tab=$'\t' REPLY
+  local -i offset=0
   local -a records=()
 
   dir="$(mktemp -d "${TMPDIR:-/tmp}/fdef.XXXXXX")" || return 1
+  file="${dir}/definitions"
   {
+    # Aliases and loose functions share one file; a record names the slice.
+    # (Multibyte is off, so ${#text} counts bytes, as tail -c does.)
     for name in "${(@ok)aliases}"; do
-      target="${dir}/$((count += 1))"
-      print -r -- "$aliases[${name}]" >| "${target}"
-      records+=("${name}${tab}alias${tab}${target}")
+      text="alias -- ${(q)name}=${(qq)aliases[${name}]}"$'\n'
+      records+=("${name}${tab}alias${tab}${file}${tab}${offset}${tab}${#text}")
+      buffer+="${text}"
+      ((offset += ${#text}))
     done
     for name in "${(@ok)galiases}"; do
-      target="${dir}/$((count += 1))"
-      print -r -- "$galiases[${name}]" >| "${target}"
-      records+=("${name}${tab}global alias${tab}${target}")
+      text="alias -g -- ${(q)name}=${(qq)galiases[${name}]}"$'\n'
+      records+=("${name}${tab}global alias${tab}${file}${tab}${offset}${tab}${#text}")
+      buffer+="${text}"
+      ((offset += ${#text}))
     done
     for name in "${(@ok)functions}"; do
       [[ "${name}" == [_.+-]* ]] && continue
-      target="${dir}/$((count += 1))"
-      _fzf_function_file "${name}" "${target}" || continue
-      records+=("${name}${tab}function${tab}${REPLY}")
+      _fzf_function_file "${name}"
+      case $? in
+        0) records+=("${name}${tab}function${tab}${REPLY}") ;;
+        2)
+          text="${name} () {"$'\n'"${functions[${name}]}"$'\n}\n'
+          records+=("${name}${tab}function${tab}${file}${tab}${offset}${tab}${#text}")
+          buffer+="${text}"
+          ((offset += ${#text}))
+          ;;
+      esac
     done
     ((${#records})) || return 1
+    print -rn -- "${buffer}" >| "${file}" || return 1
 
     name="$(_fzf_pick_definition 'enter print definition' "${*}" "$records[@]")" || return 1
     if ((${+aliases[${name}]} || ${+galiases[${name}]})); then

@@ -2,13 +2,15 @@
 
 # Set REPLY to a file holding the definition of function $1. An autoloaded
 # function resolves to its file on fpath without reading it; any other function
-# is written to $2.
+# is written to $2. Without $2 such a function returns 2, so the caller can
+# take its body from $functions itself.
 _fzf_function_file() {
   emulate -L zsh
   local name="${1}" target="${2}" dir source
   REPLY=''
   ((${+functions[${name}]})) || return 1
   if [[ "${functions[${name}]}" != *'builtin autoload -X'* ]]; then
+    [[ -n "${target}" ]] || return 2
     print -r -- "${functions[${name}]}" >| "${target}" || return 1
     REPLY="${target}"
     return

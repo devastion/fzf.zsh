@@ -3,7 +3,7 @@
 Describe 'fzf misc commands'
   BeforeEach 'load_plugin' 'stub_fzf' 'plugin_env'
 
-  Describe '_fzf'
+  Describe '_fzf_run'
     It 'runs fzf with sh as $SHELL'
       shell() {
         fake_cmd fzf 'cat > /dev/null; echo "$SHELL" > "$FZF_ARGS_FILE"; exit 130'
@@ -224,6 +224,28 @@ Describe 'fzf misc commands'
     End
   End
 
+  Describe 'fdef slice preview'
+    It 'shows only the slice of the shared file that belongs to the entry'
+      preview() {
+        alias fdef_slice_a='echo first'
+        alias fdef_slice_b='echo second'
+        unset FZF_OUTPUT
+        fdef > /dev/null
+        local -a f
+        f=("${(@ps:\t:)$(tr '\0' '\n' < "${FZF_INPUT_FILE}" | grep -a '^fdef_slice_b')}")
+        # The shared file is gone after fdef: rebuild one with the slice at its offset.
+        {
+          head -c "${f[4]}" /dev/zero | tr '\0' x
+          printf '%s\n' "alias -- fdef_slice_b='echo second'" "alias -- fdef_slice_a='echo first'"
+        } > "${SHELLSPEC_TMPBASE}/shared"
+        run_preview "${SHELLSPEC_TMPBASE}/shared" "${f[4]}" "${f[5]}"
+      }
+      When call preview
+      The output should include 'second'
+      The output should not include 'first'
+    End
+  End
+
   Describe 'previews'
     It 'fman renders the highlighted page'
       preview() {
@@ -262,6 +284,13 @@ Describe 'fzf misc commands'
       preview() { export FZF_SPEC_PREV=shown; unset FZF_OUTPUT; fenv > /dev/null; run_preview FZF_SPEC_PREV; }
       When call preview
       The output should eq shown
+    End
+
+    It 'fenv hides the value of a secret-looking variable'
+      preview() { export FZF_SPEC_API_TOKEN=hunter2; unset FZF_OUTPUT; fenv > /dev/null; run_preview FZF_SPEC_API_TOKEN; }
+      When call preview
+      The output should include 'value hidden'
+      The output should not include 'hunter2'
     End
 
     It 'ftail shows the end of the highlighted file'

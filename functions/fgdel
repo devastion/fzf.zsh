@@ -11,10 +11,10 @@ fgdel() {
   ((${#force_opt})) && delete_flag='-D'
 
   branches=("${(@f)$(
-    git for-each-ref --sort=committerdate \
+    git for-each-ref --sort=-committerdate \
       --format='%(if)%(HEAD)%(then)%(else)%(refname:short)%(end)' refs/heads/ |
       grep . |
-      _fzf --multi --query="${*}" \
+      _fzf_run --multi --query="${*}" \
         --header="tab select · enter git branch ${delete_flag}" \
         --preview 'git log --oneline --graph --color=always -n 30 {} --' \
         --preview-window 'right,60%,nohidden'

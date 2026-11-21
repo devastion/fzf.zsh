@@ -10,7 +10,7 @@ fk() {
 
   selected_processes=("${(@f)$(
     ps -eo pid,user,pcpu,pmem,args |
-      _fzf --multi --header-lines=1 --query="${*}" \
+      _fzf_run --multi --header-lines=1 --query="${*}" \
         --header="tab select · enter send SIG${signal}" \
         --preview 'printf "%s\n" {}' \
         --preview-window 'down,3,wrap,nohidden'

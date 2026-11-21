@@ -2,7 +2,7 @@
 
 # fzf runs its preview, bind and reload commands with $SHELL. They are written
 # for a POSIX shell, so run fzf with `sh` whatever the login shell is.
-_fzf() {
+_fzf_run() {
   emulate -L zsh
   SHELL=/bin/sh command fzf "$@"
 }

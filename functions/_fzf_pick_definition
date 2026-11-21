@@ -1,6 +1,8 @@
 #!/usr/bin/env zsh
 
-# Records are name<TAB>label<TAB>file; the preview shows the file.
+# Records are name<TAB>label<TAB>file, optionally followed by <TAB>offset<TAB>length
+# (bytes) to show only that slice of a shared file. The preview shows the file or
+# the slice.
 _fzf_pick_definition() {
   emulate -L zsh
   local header="${1}" query="${2}" record name selection tab=$'\t'
@@ -17,9 +19,9 @@ _fzf_pick_definition() {
       name="${record%%${tab}*}"
       printf '%s\0' "${(r:width:)name}${tab}${record#*${tab}}"
     done |
-      _fzf --read0 --delimiter="${tab}" --with-nth='1,2' \
+      _fzf_run --read0 --delimiter="${tab}" --with-nth='1,2' \
         --query="${query}" --header="${header}" \
-        --preview 'if command -v bat > /dev/null 2>&1; then bat --language=zsh --style=plain --color=always --paging=never -- {3}; else cat -- {3}; fi' \
+        --preview 'file={3}; offset={4}; length={5}; if [ -n "$length" ]; then tail -c +$((offset + 1)) -- "$file" | head -c "$length"; else cat -- "$file"; fi | if command -v bat > /dev/null 2>&1; then bat --language=zsh --style=plain --color=always --paging=never; else cat; fi' \
         --preview-window 'right,60%,wrap,nohidden'
   )" || return 1
 

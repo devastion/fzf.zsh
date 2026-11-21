@@ -4,6 +4,8 @@ _fzf_menu_load() {
   emulate -L zsh
   local file REPLY
   typeset -gA _fzf_menu
+  # Function headers do not change within a session: read them once.
+  ((${#_fzf_menu})) && return 0
   for file in "${_fzf_dir}/functions"/[^_]*(N-.); do
     [[ "${file:t}" == fmenu ]] && continue
     _fzf_func_description "${file}" && _fzf_menu[${file:t}]="${REPLY}"

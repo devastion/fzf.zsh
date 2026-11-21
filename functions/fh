@@ -5,7 +5,7 @@ fh() {
   emulate -L zsh
   local -a print_only=()
   local command_line
-  zparseopts -D -- p=print_only || return 2
+  zparseopts -D -F -- p=print_only || return 2
 
   zmodload zsh/parameter || return
   local key
@@ -16,7 +16,7 @@ fh() {
 
   command_line="$(
     print -rNC1 -- "$entries[@]" |
-      _fzf --read0 --query="${*}" --scheme=history --no-sort \
+      _fzf_run --read0 --query="${*}" --scheme=history --no-sort \
         --preview 'printf %s {}' \
         --preview-window 'down,5,wrap,nohidden' \
         --header='enter copy · fh -p prints'

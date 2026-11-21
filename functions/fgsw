@@ -11,7 +11,7 @@ fgsw() {
       --format='%(if)%(symref)%(then)%(else)%(refname:short)%(end)' \
       refs/heads/ refs/remotes/ |
       grep . |
-      _fzf --query="${*}" \
+      _fzf_run --query="${*}" \
         --preview 'git log --oneline --graph --color=always -n 30 {} --' \
         --preview-window 'right,60%,nohidden'
   )" || return 1
@@ -19,8 +19,12 @@ fgsw() {
 
   if ! git show-ref --verify --quiet "refs/heads/${branch}" &&
     git show-ref --verify --quiet "refs/remotes/${branch}"; then
-    git switch --track "${branch}" 2> /dev/null ||
+    # Fall back to the existing local branch only when --track cannot apply.
+    if git show-ref --verify --quiet "refs/heads/${branch#*/}"; then
       git switch "${branch#*/}"
+    else
+      git switch --track "${branch}"
+    fi
   else
     git switch "${branch}"
   fi

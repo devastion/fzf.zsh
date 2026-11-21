@@ -5,10 +5,8 @@ _fzf_menu_load
 local -a candidates=()
 local name description
 
-if (( ${+_fzf_menu} )); then
-  for name description in "${(@kv)_fzf_menu}"; do
-    candidates+=("${name}:${description}")
-  done
-fi
+for name description in "${(@kv)_fzf_menu}"; do
+  candidates+=("${name}:${description}")
+done
 
 _describe 'fmenu command' candidates

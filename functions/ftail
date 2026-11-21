@@ -21,7 +21,7 @@ ftail() {
 
   log_file="$(
     "$finder[@]" 2> /dev/null |
-      _fzf --scheme=path --header='enter follow the file' \
+      _fzf_run --scheme=path --header='enter follow the file' \
         --preview 'tail -n 100 -- {}' \
         --preview-window 'right,60%,wrap,nohidden'
   )" || return 1

@@ -64,12 +64,12 @@ Describe 'fzf helpers'
 
     It 'lists files and skips .git'
       When call list f
-      The output should eq './sub/file'
+      The output should eq 'sub/file'
     End
 
     It 'lists directories and skips .git'
       When call list d
-      The output should eq './sub'
+      The output should eq 'sub'
     End
   End
 End

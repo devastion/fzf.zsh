@@ -8,7 +8,7 @@ fgst() {
   local output query='' reflog_selector sha
   local -a selection=()
   while output="$(git stash list "$@" |
-    _fzf --ansi --no-sort --print-query --query="${query}" \
+    _fzf_run --ansi --no-sort --print-query --query="${query}" \
       --expect=ctrl-a,ctrl-b,ctrl-p,del \
       --bind='ctrl-u:preview-page-up' \
       --bind='ctrl-d:preview-page-down' \
@@ -30,9 +30,8 @@ fgst() {
         break
         ;;
       ctrl-b)
-        sha=''
-        [[ "$selection[3]" =~ '[0-9a-f]{7}' ]] && sha="${MATCH}"
-        git stash branch "stash-${sha}" "${reflog_selector}"
+        sha="$(git rev-parse --short "${reflog_selector}^" 2> /dev/null)"
+        git stash branch "stash-${sha:-branch}" "${reflog_selector}"
         break
         ;;
       ctrl-p)

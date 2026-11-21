@@ -23,12 +23,32 @@ fi
 
 [[ -z "${FZF_DEFAULT_OPTS_FILE-}" || -r "${FZF_DEFAULT_OPTS_FILE}" ]] || unset FZF_DEFAULT_OPTS_FILE
 
-# `fzf --zsh` needs fzf 0.48 or newer.
+# `fzf --zsh` needs fzf 0.48 or newer. Its output is cached until the fzf
+# binary changes, so a shell start does not run fzf twice.
 if [[ -o zle && -z "${ZSH_EXECUTION_STRING-}" ]] && zstyle -T ':fzf:' shell-integration; then
   () {
+    zmodload -F zsh/stat b:zstat
     autoload -Uz is-at-least
-    local version="${${(z)$(fzf --version 2> /dev/null)}[1]}"
-    ! is-at-least 0.48 "${version%%[^0-9.]*}" || source <(fzf --zsh)
+    local -A stat_info
+    local cache_dir="${XDG_CACHE_HOME:-${HOME}/.cache}/fzf.zsh" cache version
+    # The resolved path is part of the key: a Nix store file has a fixed mtime.
+    local binary="${commands[fzf]:A}"
+    zstat -H stat_info -- "${binary}" 2> /dev/null || stat_info=(mtime 0 size 0)
+    cache="${cache_dir}/integration-${binary//[^A-Za-z0-9]/_}-${stat_info[mtime]}-${stat_info[size]}.zsh"
+    if [[ ! -s "${cache}" ]]; then
+      version="${${(z)$(fzf --version 2> /dev/null)}[1]}"
+      is-at-least 0.48 "${version%%[^0-9.]*}" || return 0
+      command mkdir -p -- "${cache_dir}" 2> /dev/null
+      command rm -f -- "${cache_dir}"/integration-*.zsh(N) 2> /dev/null
+      if fzf --zsh >| "${cache}.$$" 2> /dev/null && command mv -f -- "${cache}.$$" "${cache}"; then
+        :
+      else
+        command rm -f -- "${cache}.$$" 2> /dev/null
+        source <(fzf --zsh)
+        return
+      fi
+    fi
+    [[ -s "${cache}" ]] && source "${cache}"
   }
 fi
 
